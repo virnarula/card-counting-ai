@@ -7,7 +7,7 @@ class Suit(enum.Enum):
     DIAMONDS = 3
     HEARTS = 4
 
-class Value(enum.Enum):
+class Value(enum.IntEnum):
     ACE = 1
     TWO = 2
     THREE = 3
@@ -53,7 +53,7 @@ class Deck:
 
     def draw(self):
         to_return = self.deck.pop()
-        used_cards.append(used_cards)
+        self.used_deck.append(to_return)
         if len(self.deck) < 8:
             self.__init__(self.decks)
         return to_return
@@ -93,39 +93,41 @@ class Game:
     def make_bet(self, bet):
         if bet <= 0 and bet > starting_money:
             raise Exception("Bet is not in acceptable range")
+        self.bet = bet
     
     def deal_cards(self):
         assert not self.player_cards
         assert not self.dealer_cards
-        self.dealer_cards.append(deck.draw())
-        self.dealer_cards.append(deck.draw())
-        self.player_cards.append(deck.draw())
-        self.player_cards.append(deck.draw())
+        assert self.bet > 0
+        self.dealer_cards.append(self.deck.draw())
+        self.dealer_cards.append(self.deck.draw())
+        self.player_cards.append(self.deck.draw())
+        self.player_cards.append(self.deck.draw())
 
     def hit(self):
-        value = evaluateHand(self.player_cards)
+        value = Game.evaluateHand(self.player_cards)
         if value == -1 or value >= 21:
             raise Exception("Cannot hit. Current hand value: " + str(value))
-        self.player_cards.append(deck.draw())
+        self.player_cards.append(self.deck.draw())
     
     def dealer_hit(self):
-        value = evaluateHand(self.dealer_cards)
+        value = Game.evaluateHand(self.dealer_cards)
         while value < 16 and value != -1:
-            self.dealer_cards.append(deck.draw())
-            value = evaluateHand(self.dealer_cards)
+            self.dealer_cards.append(self.deck.draw())
+            value = Game.evaluateHand(self.dealer_cards)
 
     def end_round(self):
-       players_hand = evaluateHand(self.player_cards)
-       dealers_hand = evaluateHand(self.dealer_cards)
+       players_hand = Game.evaluateHand(self.player_cards)
+       dealers_hand = Game.evaluateHand(self.dealer_cards)
 
-        if players_hand == dealers_hand:
-           clear_round()
-        elif players_hand > dealers_hand:
-            self.money += bet
-            clear_round()
-        else:
-            self.money -= bet
-            clear_round()
+       if players_hand == dealers_hand:
+           self.clear_round()
+       elif players_hand > dealers_hand:
+            self.money += self.bet
+            self.clear_round()
+       else:
+            self.money -= self.bet
+            self.clear_round()
 
     def clear_round(self):
         self.dealer_cards.clear()
@@ -136,18 +138,18 @@ class Game:
         if len(hand) != 2:
             return False
         
-        if hand[0].value > 10 and hand[1].value == 1:
+        if int(hand[0].value) > 10 and int(hand[1].value) == 1:
             return True
         
         hand.reverse()
 
-        if hand[0].value > 10 and hand[1].value == 1:
+        if int(hand[0].value) > 10 and int(hand[1].value) == 1:
             return True
 
         return False
 
     def evaluateHand(hand):
-        if isBlackjack(hand):
+        if Game.isBlackjack(hand):
             return 22
 
         sum = 0
