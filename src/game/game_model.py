@@ -44,6 +44,7 @@ class Card:
 class Deck:
     def __init__(self, decks):
         self.deck = []
+        self.used_deck = []
         self.decks = decks
         for i in range(0, decks):
             for suit in Suit:
@@ -52,6 +53,7 @@ class Deck:
 
     def draw(self):
         to_return = self.deck.pop()
+        used_cards.append(used_cards)
         if len(self.deck) < 8:
             self.__init__(self.decks)
         return to_return
@@ -78,42 +80,93 @@ class Deck:
         for card in self.deck:
             print(card.getName())
 
-def isBlackjack(hand):
-    if len(hand) != 2:
-        return false
+class Game:
+    def __init__(self, decks, money):
+        self.decks = decks
+        self.deck = Deck(decks)
+        self.money = money
+        self.starting_money = money
+        self.bet = 0
+        self.player_cards = []
+        self.dealer_cards = []
     
-    if hand[0].value > 10 and hand[1].value == 1:
-        return true
+    def make_bet(self, bet):
+        if bet <= 0 and bet > starting_money:
+            raise Exception("Bet is not in acceptable range")
     
-    hand.reverse()
+    def deal_cards(self):
+        assert not self.player_cards
+        assert not self.dealer_cards
+        self.dealer_cards.append(deck.draw())
+        self.dealer_cards.append(deck.draw())
+        self.player_cards.append(deck.draw())
+        self.player_cards.append(deck.draw())
 
-    if hand[0].value > 10 and hand[1].value == 1:
-        return true
+    def hit(self):
+        value = evaluateHand(self.player_cards)
+        if value == -1 or value >= 21:
+            raise Exception("Cannot hit. Current hand value: " + str(value))
+        self.player_cards.append(deck.draw())
+    
+    def dealer_hit(self):
+        value = evaluateHand(self.dealer_cards)
+        while value < 16 and value != -1:
+            self.dealer_cards.append(deck.draw())
+            value = evaluateHand(self.dealer_cards)
 
-    return false
+    def end_round(self):
+       players_hand = evaluateHand(self.player_cards)
+       dealers_hand = evaluateHand(self.dealer_cards)
 
-
-def evaluateHand(hand):
-    if isBlackjack(hand):
-        return 22
-
-    sum = 0
-    aces = 0
-
-    for card in hand:
-        if card.getValue().value > 10:
-            sum += 10
-        elif card.getValue() == Value.ACE:
-            sum += 1
-            aces += 1
+        if players_hand == dealers_hand:
+           clear_round()
+        elif players_hand > dealers_hand:
+            self.money += bet
+            clear_round()
         else:
-            sum += card.getValue().value
+            self.money -= bet
+            clear_round()
 
-    while aces > 0 and sum <= 11:
-        sum += 10
-        aces -= 1
+    def clear_round(self):
+        self.dealer_cards.clear()
+        self.player_cards.clear()
+        self.bet = 0
 
-    if sum > 21:
-        return -1
+    def isBlackjack(hand):
+        if len(hand) != 2:
+            return False
+        
+        if hand[0].value > 10 and hand[1].value == 1:
+            return True
+        
+        hand.reverse()
 
-    return sum
+        if hand[0].value > 10 and hand[1].value == 1:
+            return True
+
+        return False
+
+    def evaluateHand(hand):
+        if isBlackjack(hand):
+            return 22
+
+        sum = 0
+        aces = 0
+
+        for card in hand:
+            if card.getValue().value > 10:
+                sum += 10
+            elif card.getValue() == Value.ACE:
+                sum += 1
+                aces += 1
+            else:
+                sum += card.getValue().value
+
+        while aces > 0 and sum <= 11:
+            sum += 10
+            aces -= 1
+
+        if sum > 21:
+            return -1
+
+        return sum
