@@ -41,6 +41,9 @@ class Card:
             return True
         return False
 
+    def __str__(self):
+        return str(int(self.value)) + " of " + str(self.suit)
+
 class Deck:
     def __init__(self, decks):
         self.deck = []
@@ -84,6 +87,7 @@ class Game:
     def __init__(self, decks, money):
         self.decks = decks
         self.deck = Deck(decks)
+        self.deck.shuffle()
         self.money = money
         self.starting_money = money
         self.bet = 0
@@ -91,7 +95,7 @@ class Game:
         self.dealer_cards = []
     
     def make_bet(self, bet):
-        if bet <= 0 and bet > starting_money:
+        if bet <= 0 or bet > self.money:
             raise Exception("Bet is not in acceptable range")
         self.bet = bet
     
